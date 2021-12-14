@@ -55,8 +55,24 @@
               - Blob object contains: contents of the file for this version
             - references to tree objects for each subdirectory
               of the directory for this version
-
+    * Nearly Every Operation Is Local
+      * For example, to browse the history of the project, Git doesn’t need to go out to the server to get the
+        history and display it for you — it simply reads it directly from your local database.
+    * Everything in Git is checksummed before it is stored and is then referred to by that checksum.
+      * This
+        means it’s impossible to change the contents of any file or directory without Git knowing about it.
+      * You can’t lose
+        information in transit or get file corruption without Git being able to detect it.
+      * The mechanism that Git uses for this checksumming is called a SHA-1 hash.
+      * In fact, Git
+        stores everything in its database not by file name but by the hash value of its contents.
 ## basics
+* Git has three main states that your files can reside in: modified,
+  staged, and committed
+  * The staging area is a file, generally contained in your Git directory, that stores information about
+    what will go into your next commit.
+    * Its technical name in Git parlance is the “index”, but the phrase
+       “staging area” works just as well.
 * commit
     * The first thing to point out about the git log output is that each commit has an ID
       * This ID is unique to this commit even if you share your repository with a different
@@ -75,7 +91,19 @@
       the repository.
     * The git log output lists all the commits that have been made on the current branch
       in reverse chronological order
+    * Adding the -a option to the git commit command makes
+      Git automatically stage every file that is already tracked before doing the commit
+* git amend
+    * It’s important to understand that when you’re amending your last commit, you’re
+      not so much fixing it as replacing it entirely with a new, improved commit that
+      pushes the old commit out of the way and puts the new commit in its place.
 * git add, git commit
+    * It
+      turns out that Git stages a file exactly as it is when you run the git add command. If you commit
+      now, the version of CONTRIBUTING.md as it was when you last ran the git add command is how it will
+      go into the commit, not the version of the file as it looks in your working directory when you run
+      git commit. If you modify a file after you run git add, you have to run git add again to stage the
+      latest version of the file
     * Whenever you want to introduce a new file to a Git repository, you must use git add
       on that file first
       * Git can only keep track of files that it has been told about
@@ -133,6 +161,8 @@
     * git push sends your new commits to it,
       and git fetch retrieves from it any new commits made by others
 * fetch
+    * While the git fetch command will fetch all the changes on the server that you don’t have yet, it will
+      not modify your working directory at all.
       * retrieves files from one repository and incorporates those files into your
         repository. Specifically, git fetch retrieves references, which for you means branches
         or tags
@@ -146,6 +176,9 @@
           object (a new commit to master)
           and laid it right on top of your
           local repository.
+      * It’s important to note that the git fetch command only downloads
+        the data to your local repository - it doesn’t automatically merge it with any of your work or
+        modify what you’re currently working on
 * merge
     * A merge results in a commit that has two (or even more) parent
       commits.
@@ -154,6 +187,13 @@
     * One special case of merging in Git is the fast-forward merge. This special case takes
       effect when the target branch is a descendant of the branch that it will merge with.
     * fast-forward
+        * Because the commit C4 pointed to by the
+          branch hotfix you merged in was directly ahead of the commit C2 you’re on, Git simply moves the
+          pointer forward.
+          * To phrase that another way, when you try to merge one commit with a commit
+            that can be reached by following the first commit’s history, Git simplifies things by moving the
+            pointer forward because there is no divergent work to merge together — this is called a “fast-
+            forward.”
     * Let’s start by setting up how to perform a merge that could be made without creating
       a merge commit: a fast-forward merge.
       * Recall that a fast-forward merge means the
@@ -177,7 +217,27 @@
       with two parent commits);
     * and rebasing creates new, reparented commits on top of
       the existing commits.
+    * Because the commit on the branch you’re on isn’t a
+      direct ancestor of the branch you’re merging in, Git has to do some work.
+      * In this case, Git does a
+        simple three-way merge, using the two snapshots pointed to by the branch tips and the common
+        ancestor of the two.
+      * Instead of just moving the branch pointer forward, Git creates a new snapshot that results from this
+        three-way merge and automatically creates a new commit that points to it.
+        * This is referred to as a
+          merge commit, and is special in that it has more than one parent.
 * rebase
+    * With the rebase command, you can take all the
+      changes that were committed on one branch and replay them on a different branch.
+      * git rebase --onto master client // applies commits from client to the master since diverged
+      * Now you can fast-forward your master branch
+        * git checkout master
+        * git merge client
+      * git rebase master server
+        * This replays your server work on top of your master work
+        * Then, you can fast-forward the base branch
+          $ git checkout master
+          $ git merge server
     * A rebase is a method of rewriting history in Git that is similar to a merge. A rebase
       involves changing the parent of a commit to point to another.
       * The rebase operation has changed the parent of the first commit in the separate-
@@ -211,6 +271,25 @@
         branches), you can instead use git stash apply .
       * git stash clear
 * git tag
+    * Git has the ability to tag specific points in a repository’s history as being important.
+      * people use this functionality to mark release points (v1.0, v2.0 and so on)
+      * Git supports two types of tags: lightweight and annotated.
+        * A lightweight tag is very much like a branch that doesn’t change — it’s just a pointer to a specific
+          commit.
+        * Annotated tags, however, are stored as full objects in the Git database.
+          * They’re checksummed;
+            contain the tagger name, email, and date; have a tagging message; and can be signed and verified
+            with GNU Privacy Guard (GPG)
+          * It’s generally recommended that you create annotated tags so you
+            can have all this information; but if you want a temporary tag or for some reason don’t want to
+            keep the other information, lightweight tags are available too.
+      * By default, the git push command doesn’t transfer tags to remote servers.
+        * You will have to explicitly
+          push tags to a shared server after you have created them.
+        * git push origin <tagname>
+        * If you have a lot of tags that you want to push up at once, you can also use the --tags option
+      * If you want to view the versions of files a tag is pointing to, you can do a git checkout of that tag
+        * git checkout v2.0.0
     * A tag is another ref (or pointer) for a single commit.
       * Tags differ from branches in that they’re (usually) permanent
       * Rather than pointing
@@ -293,7 +372,31 @@
 
 
 ## recovery and history
+* Remember, anything that is committed in Git can almost always be recovered. Even commits that
+  were on branches that were deleted or commits that were overwritten with an --amend commit can
+  be recovered
+  * However, anything you lose that was never
+    committed is likely never to be seen again.
 * reset
+    * An easier way to think about reset and checkout is through the mental frame of Git being a content
+      manager of three different trees.
+      * By “tree” here, we really mean “collection of files”, not specifically
+        the data structure
+      * Tree                  Role
+        HEAD                  Last commit snapshot, next parent
+        Index                 Proposed next commit snapshot // staging area
+        Working Directory     Sandbox
+    * reset
+      * The first thing reset will do is move what HEAD points to
+      * This isn’t the same as changing HEAD
+        itself (which is what checkout does)
+      * reset moves the branch that HEAD is pointing to
+        * This means if
+          HEAD is set to the master branch (i.e. you’re currently on the master branch), running git reset
+          9e5e6a4 will start by making master point to 9e5e6a4
+      1. Move the branch HEAD points to (stop here if --soft).
+      2. Make the index look like HEAD (stop here unless --hard).
+      3. Make the working directory look like the index.
     * There are times when you’ve made changes to files in the working directory but you
       don’t want to commit these changes.
       * Perhaps you added debugging statements to files and have now committed a fix, so you want to reset all the files that haven’t been com-
@@ -318,6 +421,9 @@
         commit and then creates a new commit with the same commit message as the commit
         that was just reset
 * reset, detached head
+    * In “detached HEAD” state, if you make changes and then create a commit, the tag will stay the same,
+      but your new commit won’t belong to any branch and will be unreachable, except by the exact
+      commit hash.
       * Resetting a branch to a previous commit: git reset
         * git reset HEAD^
         * # git reflog HEAD
@@ -325,6 +431,20 @@
             4455fa9 HEAD@{1}: commit: Update preface. // New commit
             git reset 4455fa9
 * git reflog
+    * Often, the quickest way is to use a tool called git reflog.
+      * As you’re working, Git silently records
+        what your HEAD is every time you change it.
+      * Each time you commit or change branches, the reflog
+        is updated.
+      * reflog data is kept in the .git/logs/ directory
+      * suppose rm -Rf .git/logs/
+        * How can
+          you recover that commit at this point
+        * One way is to use the git fsck utility, which checks your
+          database for integrity. If you run it with the --full option, it shows you all objects that aren’t
+          pointed to by another object:
+        * In this case, you can see your missing commit after the string “dangling commit”. You can recover it
+          the same way, by adding a branch that points to that SHA-1.
     * If everything is broken, you can use git reflog. It will show you a list of events that happened on your local repository. Copy the hash of the event before your mistake, and then run
     * Git’s reflog (or reference log) is updated whenever a commit pointer is updated (like a
       HEAD pointer or branch pointer)
@@ -346,6 +466,28 @@
             * git checkout -b <branch> <sha>
 * git log
 * checkout, switch
+    * Running git checkout [branch] is pretty similar to running git reset --hard [branch] in that it
+      updates all three trees for you to look like [branch], but there are two important differences.
+      * First, unlike reset --hard, checkout is working-directory safe; it will check to make sure it’s not
+        blowing away files that have changes to them.
+      * Actually, it’s a bit smarter than that — it tries to do a
+        trivial merge in the working directory, so all of the files you haven’t changed will be updated
+      * reset
+        --hard, on the other hand, will simply replace everything across the board without checking.
+    * The second important difference is how checkout updates HEAD. Whereas reset will move the
+      branch that HEAD points to, checkout will move HEAD itself to point to another branch.
+      * For instance, say we have master and develop branches which point at different commits, and we’re
+        currently on develop (so HEAD points to it)
+        * If we run git reset master, develop itself will now point
+          to the same commit that master does. If we instead run git checkout master, develop does not move,
+          HEAD itself does. HEAD will now point to master.
+    * git checkout -- CONTRIBUTING.md // discard changes
+      * git restore CONTRIBUTING.md
+      * git restore is a new command that has been introduced (last summer) in Git 2.23 together with git switch. Their purposes are to simplify and separate the use cases of git checkout that does too many things.
+        * https://stackoverflow.com/questions/61130412/what-is-the-difference-between-git-checkout-vs-git-restore-for-reverting-un
+        * git checkout can be used to switch branches (and also to create a new branch before switching to it). This functionality has been extracted into git switch.
+        * git checkout can also be used to restore files to the state they were on a specified commit. This functionality has been extracted into git restore.
+
     * Going back in time with git checkout
       * Normally, your HEAD is associated with a branch. When you move your HEAD
         around by using git checkout , you disassociate your HEAD from your current
@@ -381,6 +523,14 @@
       be used to rewrite all the commits in an entire repository.
 
 ## branching
+* Tracking branches are
+  local branches that have a direct relationship to a remote branch. If you’re on a tracking branch
+  and type git pull, Git automatically knows which server to fetch from and which branch to merge
+  in.
+* A branch in Git is simply a lightweight movable pointer to one of these commits
+  * How does Git know what branch you’re currently on? It keeps a special pointer called HEAD
+  * when you switch branches, Git resets your working directory to look like it did the last time you
+    committed on that branch
 * is shown because the --set-upstream option was passed to git push . By passing
   this option, you tell Git that you want the local master branch you’ve just pushed to
   track the origin remote’s branch master . The master branch on the origin
@@ -403,6 +553,14 @@
 * This idea of pointing to a commit is known as a reference.
 
 ## submodules
+* It often happens that while working on one project, you need to use another project from within it.
+* Submodules allow you to keep a Git repository as a
+  subdirectory of another Git repository.
+* git submodule update command to fetch changes from the submodule
+  repositories
+* git submodule update --remote will only update the branch registered in the .gitmodule, and by default, you will end up with a detached HEAD, unless --rebase or --merge is specified
+* git submodule foreach 'git stash'
+  * run some arbitrary command in each submodule
 * A Git repository can contain submodules. They allow you to reference other Git
   repositories at specific revisions.
 * After this was done, it also created a .gitmodules file
@@ -426,6 +584,37 @@
   * git submodule foreach 'echo $name: $toplevel/$path [$sha1]'
 
 ## internals
+* A remote repository is generally a bare repository — a Git repository that has no working directory.
+  * Because the repository is only used as a collaboration point, there is no reason to have a snapshot
+    checked out on disk; it’s just the Git data.
+  * In the simplest terms, a bare repository is the contents of
+     your project’s .git directory and nothing else.
+* Git doesn’t store data as a series of changesets or
+  differences, but instead as a series of snapshots.
+  * When you make a commit, Git stores a commit object that contains a pointer to the snapshot of the
+    content you staged.
+  * This object also contains the author’s name and email address, the message that
+     you typed, and pointers to the commit or commits that directly came before this commit (its parent
+     or parents): zero parents for the initial commit, one parent for a normal commit, and multiple
+     parents for a commit that results from a merge of two or more branches.
+  * Staging the files computes a checksum for each one (the SHA-1 hash we mentioned
+    in What is Git?), stores that version of the file in the Git repository (Git refers to them as blobs), and
+    adds that checksum to the staging area:
+  * When you create the commit by running git commit, Git checksums each subdirectory (in this case,
+    just the root project directory) and stores them as a tree object in the Git repository.
+  * Git then creates
+    a commit object that has the metadata and a pointer to the root project tree so it can re-create that
+    snapshot when needed.
+  * Your Git repository now contains five objects: three blobs (each representing the contents of one of
+    the three files), one tree that lists the contents of the directory and specifies which file names are
+    stored as which blobs, and one commit with the pointer to that root tree and all the commit
+    metadata.
+
+![alt text](img/commit1.png)
+* If you make some changes and commit again, the next commit stores a pointer to the commit that
+  came immediately before it
+  ![alt text](img/commit2.png)
+
 * git remote --verbose
   origin  https://github.com/mtumilowicz/book-reports.wiki.git (fetch)
   origin  https://github.com/mtumilowicz/book-reports.wiki.git (push)
@@ -433,3 +622,128 @@
     * The documentation wasn't clear that "remote.<nick>.pushURL" and "remote.<nick>.URL" are there to name the
     * same repository accessed via different transports, not two separate repositories
       * example: ssh, https
+* Here’s what a newly-
+  initialized .git directory typically looks like:
+  * ls -F1
+  * config
+    description
+    HEAD
+    hooks/
+    info/
+    objects/
+    refs/
+* The description file is used only by the GitWeb
+  program, so don’t worry about it.
+* The config file contains your project-specific configuration
+  options, and the info directory keeps a global exclude file for ignored patterns that you don’t want
+  to track in a .gitignore file
+* The hooks directory contains your client- or server-side hook scripts,
+  which are discussed in detail in Git Hooks.
+* The objects directory stores all the content for your
+  database, the refs directory stores pointers into commit objects in that data (branches, tags,
+  remotes and more), the HEAD file points to the branch you currently have checked out, and the index
+  file is where Git stores your staging area information.
+* Git Objects
+  * Git is a content-addressable filesystem
+  * It means that at the core of Git
+    is a simple key-value data store
+  * What this means is that you can insert any kind of content into a
+    Git repository, for which Git will hand you back a unique key you can use later to retrieve that
+    content.
+  * Now, let’s use git hash-object to create a new data object and manually store it in
+    your new Git database
+    * echo 'test content' | git hash-object -w --stdin
+      d670460b4b4aece5915caf5c68d12f560a9fe3e4
+    * git hash-object would take the content you handed to it and merely return the
+       unique key that would be used to store it in your Git database. The -w option then tells the command
+       to not simply return the key, but to write that object to the database
+    * Finally, the --stdin option tells
+      git hash-object to get the content to be processed from stdin
+    * find .git/objects -type f
+      .git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
+      * This is how Git stores the content initially — as a single file per piece of content, named
+         with the SHA-1 checksum of the content and its header
+  * git cat-file command
+    * command is sort of a Swiss army knife for inspecting Git objects
+* Tree Objects
+  * is the tree, which solves the problem of storing the
+    filename and also allows you to store a group of files together
+  * Git stores content in a manner
+    similar to a UNIX filesystem, but a bit simplified
+  * All the content is stored as tree and blob objects,
+    with trees corresponding to UNIX directory entries and blobs corresponding more or less to inodes
+    or file contents
+  * A single tree object contains one or more entries, each of which is the SHA-1 hash
+    of a blob or subtree with its associated mode, type, and filename
+  * git cat-file -p master^{tree}
+    * master^{tree} syntax specifies the tree object that is pointed to by the last commit on your
+    master branch
+    ![alt text](img/git/data_model.png)
+  * Git normally creates a tree by taking the state of your
+    staging area or index and writing a series of tree objects from it
+* Commit Objects
+  * you now have three trees that represent the different snapshots of
+    your project that you want to track, but the earlier problem remains: you must remember all three
+    SHA-1 values in order to recall the snapshots
+  * To create a commit object, you call commit-tree and specify a single tree SHA-1 and which commit
+    objects, if any, directly preceded it
+  * The format for a commit object is simple: it specifies the top-level tree for the snapshot of the
+    project at that point; the parent commits if any (the commit object described above does not have
+    any parents); the author/committer information (which uses your user.name and user.email
+    configuration settings and a timestamp); a blank line, and then the commit message.
+* Object Storage
+  * Git concatenates the header and the original content and then calculates the SHA-1 checksum of
+    that new content
+* Git References
+  * find .git/refs
+    * .git/refs
+      .git/refs/heads
+      .git/refs/tags
+  * echo 1a410efbd13591db07496601ebc7a059dd55cfe9 > .git/refs/heads/master
+    * Now, you can use the head reference you just created instead of the SHA-1 value in your Git
+      commands
+    * Git provides the safer command
+      git update-ref to do this if you want to update a reference
+      * git update-ref refs/heads/master 1a410efbd13591db07496601ebc7a059dd55cfe9
+    * That’s basically what a branch in Git is: a simple pointer or reference to the head of a line of work
+    * To create a branch back at the second commit, you can do this
+      * git update-ref refs/heads/test cac0ca
+    * When you run commands like git branch <branch>, Git basically runs that update-ref command to
+      add the SHA-1 of the last commit of the branch you’re on into whatever new reference you want to
+      create.
+* HEAD
+  * when you run git branch <branch>, how does Git know the SHA-1 of the last
+    commit? The answer is the HEAD file
+  * Usually the HEAD file is a symbolic reference to the branch you’re currently on
+  * By symbolic
+    reference, we mean that unlike a normal reference, it contains a pointer to another reference
+  * However in some rare cases the HEAD file may contain the SHA-1 value of a git object
+    * This happens
+      when you checkout a tag, commit, or remote branch, which puts your repository in "detached
+      HEAD" state.
+  * cat .git/HEAD // ref: refs/heads/master
+    * If you run git checkout test
+    * cat .git/HEAD // ref: refs/heads/test
+  * git symbolic-ref HEAD // read the value of your HEAD
+    * git symbolic-ref HEAD refs/heads/test // set the value of HEAD
+* Tags
+  * The tag object is very much like a commit object — it contains a tagger, a date, a message,
+    and a pointer
+  * The main difference is that a tag object generally points to a commit rather than a
+    tree
+  * It’s like a branch reference, but it never moves — it always points to the same commit but
+    gives it a friendlier name
+  * If you create an annotated tag, Git creates a tag object and then writes a reference to
+    point to it rather than directly to the commit
+  * Also notice that it
+    doesn’t need to point to a commit; you can tag any Git object
+* Remotes
+  * If you add a remote and push to it,
+    Git stores the value you last pushed to that remote for each branch in the refs/remotes directory
+* Packfiles
+  * Wouldn’t it be nice if Git could store one of them in full but then the second object only as the delta
+    between it and the first?
+* Removing Objects
+  * However, if someone at any point in the history of your project added a single huge file, every clone
+    for all time will be forced to download that large file, even if it was removed from the project in the
+    very next commit. Because it’s reachable from the history, it will always be there.
