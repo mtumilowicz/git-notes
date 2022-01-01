@@ -30,6 +30,7 @@
         * unique commit reference
             * SHA-1 hashes such as `86bb0d659a39c98808439fadb8dbd594bec0004d`
             * everything in Git is checksummed before it is stored and is then referred to by that checksum
+                *
             * it’s impossible to change the contents of any file or directory without Git knowing about it
             * Git stores everything in its database not by file name but by the hash value of its contents
         * pointer to the preceding commit (parent commit)
@@ -155,6 +156,18 @@
     * git diff
     * git revert
     * git config
+    * git checkout
+    * git reset
+        * modifies the current branch pointer so it points to another commit
+        * phases
+            1. Move the branch HEAD points to (stop here if --soft)
+            2. Make the index look like HEAD (stop here unless --hard)
+            3. Make the working directory look like the index.
+        * vs checkout
+            * checkout modifies the HEAD pointer so it points to another branch (or, rarely, commit)
+        * example
+            * `git commit --amend` resets to the previous commit and then creates a new commit with the same commit
+            message as the commit that was just reset
 * tracking branch
 * ref
     * are the possible ways of addressing individual commits
@@ -173,149 +186,37 @@
             * detached HEAD state
                 * it means that HEAD points directly to a commit
                 * it is called a detached HEAD, because HEAD is pointing to something other than a branch reference
+                    * since you don't have a branch attached to you, the branch won't follow along with you as you
+                    make new commits
                 * you could be on the same commit as your master branch, but if HEAD is pointing to the commit
                 rather than the branch, it is detached and a new commit will not be associated with a branch reference
                 * representation of (HEAD -> branch) vs. (HEAD, branch) with git log -1
     * `ref~1` or `ref^^` = one commit before that ref
     * git rev-parse
         * see what SHA-1 a given ref expands to
+
 ## basics
 * three main states that your files can reside in
     * modified
     * staged (index)
     * committed
-* ref
 
 ## recovery and history
-* Remember, anything that is committed in Git can almost always be recovered. Even commits that
-  were on branches that were deleted or commits that were overwritten with an --amend commit can
-  be recovered
-  * However, anything you lose that was never
-    committed is likely never to be seen again.
-* reset
-    * An easier way to think about reset and checkout is through the mental frame of Git being a content
-      manager of three different trees.
-      * By “tree” here, we really mean “collection of files”, not specifically
-        the data structure
-      * Tree                  Role
-        HEAD                  Last commit snapshot, next parent
-        Index                 Proposed next commit snapshot // staging area
-        Working Directory     Sandbox
-    * reset
-      * The first thing reset will do is move what HEAD points to
-      * This isn’t the same as changing HEAD
-        itself (which is what checkout does)
-      * reset moves the branch that HEAD is pointing to
-        * This means if
-          HEAD is set to the master branch (i.e. you’re currently on the master branch), running git reset
-          9e5e6a4 will start by making master point to 9e5e6a4
-      1. Move the branch HEAD points to (stop here if --soft).
-      2. Make the index look like HEAD (stop here unless --hard).
-      3. Make the working directory look like the index.
-    * There are times when you’ve made changes to files in the working directory but you
-      don’t want to commit these changes.
-      * Perhaps you added debugging statements to files and have now committed a fix, so you want to reset all the files that haven’t been com-
-        mitted to their last committed state (on the current branch).
-      * git reset --hard
-        * git reset --hard <reglog-sha> // It will reset everything at that point of history
-        * The --hard argument signals to git reset that you want it to reset both the index stag-
-          ing area and the working directory to the state of the previous commit on this branch.
-        * If run without an argument, it defaults to git reset --mixed , which resets the index
-          staging area but not the contents of the working directory.
-        * In short, git reset --mixed
-          only undoes git add , but git reset --hard undoes git add and all file modifications.
-    * git reset
-      modifies the current branch pointer so it points to another commit. git
-      checkout modifies the HEAD pointer so it points to another branch (or, rarely,
-      commit)
-      * If you’re on the master branch, git reset --hard v0.1-release
-        sets the master branch to point to the top of the v0.1-release branch,
-        whereas git checkout v0.1-release changes the current branch (the HEAD
-        pointer) to point to the v0.1-release branch.
-      * git commit --amend resets to the previous
-        commit and then creates a new commit with the same commit message as the commit
-        that was just reset
-* reset, detached head
-    * In “detached HEAD” state, if you make changes and then create a commit, the tag will stay the same,
-      but your new commit won’t belong to any branch and will be unreachable, except by the exact
-      commit hash.
-      * Resetting a branch to a previous commit: git reset
-        * git reset HEAD^
-        * # git reflog HEAD
-            3e3c417 HEAD@{0}: reset: moving to HEAD^ // Commit reset
-            4455fa9 HEAD@{1}: commit: Update preface. // New commit
-            git reset 4455fa9
+* anything that is committed in Git can almost always be recovered
+    * even commits that were on branches that were deleted
+    * or commits that were overwritten with an --amend commit
 * git reflog
-    * Often, the quickest way is to use a tool called git reflog.
-      * As you’re working, Git silently records
-        what your HEAD is every time you change it.
-      * Each time you commit or change branches, the reflog
-        is updated.
-      * reflog data is kept in the .git/logs/ directory
-      * suppose rm -Rf .git/logs/
-        * How can
-          you recover that commit at this point
-        * One way is to use the git fsck utility, which checks your
-          database for integrity. If you run it with the --full option, it shows you all objects that aren’t
-          pointed to by another object:
-        * In this case, you can see your missing commit after the string “dangling commit”. You can recover it
-          the same way, by adding a branch that points to that SHA-1.
-    * If everything is broken, you can use git reflog. It will show you a list of events that happened on your local repository. Copy the hash of the event before your mistake, and then run
-    * Git’s reflog (or reference log) is updated whenever a commit pointer is updated (like a
-      HEAD pointer or branch pointer)
-      * This includes previous actions you’ve seen that don’t
-        involve rewriting history, such as committing and changing branches.
-      * They aren’t shared with other repositories when you git push and aren’t
-        fetched when you git fetch .
-      * As a result, they can only be used to see actions
-        that were made in the Git repository on your local machine.
-      * Basically every action you perform inside of Git where data is stored, you can find it inside of the reflog.
-        * What this means is that you can use it as a safety net: you shouldn’t be worried that a merge, rebase, or some other action will destroy your work since you can find it again using this command.
-        * The most common usage of this command is that you’ve just done a git reset and moved your HEAD back a few commits. But oops, you need that bit of code you left in the second commit.
-          * What this shows is a list of commits that Git still has in its storage.
-          * git log shows the current HEAD and its ancestry. That is, it prints the commit HEAD points to, then its parent, its parent, and so on. It traverses back through the repo's ancestry, by recursively looking up each commit's parent.
-          * The reflog is an ordered list of the commits that HEAD has pointed to: it's undo history for your repo.
-          * Find the 'sha' for the commit at the tip of your deleted branch using
-            * git reflog
-          * To restore the branch, use:
-            * git checkout -b <branch> <sha>
-* git log
-* checkout, switch
-    * Running git checkout [branch] is pretty similar to running git reset --hard [branch] in that it
-      updates all three trees for you to look like [branch], but there are two important differences.
-      * First, unlike reset --hard, checkout is working-directory safe; it will check to make sure it’s not
-        blowing away files that have changes to them.
-      * Actually, it’s a bit smarter than that — it tries to do a
-        trivial merge in the working directory, so all of the files you haven’t changed will be updated
-      * reset
-        --hard, on the other hand, will simply replace everything across the board without checking.
-    * The second important difference is how checkout updates HEAD. Whereas reset will move the
-      branch that HEAD points to, checkout will move HEAD itself to point to another branch.
-      * For instance, say we have master and develop branches which point at different commits, and we’re
-        currently on develop (so HEAD points to it)
-        * If we run git reset master, develop itself will now point
-          to the same commit that master does. If we instead run git checkout master, develop does not move,
-          HEAD itself does. HEAD will now point to master.
-    * git checkout -- CONTRIBUTING.md // discard changes
-      * git restore CONTRIBUTING.md
-      * git restore is a new command that has been introduced (last summer) in Git 2.23 together with git switch. Their purposes are to simplify and separate the use cases of git checkout that does too many things.
-        * https://stackoverflow.com/questions/61130412/what-is-the-difference-between-git-checkout-vs-git-restore-for-reverting-un
-        * git checkout can be used to switch branches (and also to create a new branch before switching to it). This functionality has been extracted into git switch.
-        * git checkout can also be used to restore files to the state they were on a specified commit. This functionality has been extracted into git restore.
+    * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
+    * if everything is broken, you can use git reflog
+        * copy the hash of the event before your mistake, and then run
+    * is not shared with other repositories when you git push and aren’t fetched when you git fetch
+    * is an ordered list of the commits that HEAD has pointed to
+* git checkout
+    * will move HEAD itself to point to another branch (or commit)
+    * new command to separate the use cases of git checkout (does too many things)
+        * git switch - used to switch branches
+        * git restore - restore files to the state they were on a specified commit
 
-    * Going back in time with git checkout
-      * Normally, your HEAD is associated with a branch. When you move your HEAD
-        around by using git checkout , you disassociate your HEAD from your current
-        branch, which Git considers detached.
-      * The master pointer (reference) doesn’t move. It always points to the last
-        commit of the branch.
-    * git checkout dev
-      Check out isn’t like checking out a book from a library; in the context of Git,
-      check out means changing the working directory to reflect the contents of
-      the branch.
-    * git checkout auto-
-      matically associates local branches with their corresponding remote-tracking
-      branches, if their names match
 * Recall from technique 3 that each commit points to the previous (parent) commit
   and that this is repeated all the way to the branch’s initial commit.
   * As a result, the
