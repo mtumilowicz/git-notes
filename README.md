@@ -5,6 +5,7 @@
     * https://www.manning.com/books/learn-git-in-a-month-of-lunches
     * https://git-scm.com/book/en/v2
     * https://www.biteinteractive.com/understanding-git-merge/
+    * https://stackoverflow.com/questions/2304087/what-is-head-in-git
 
 ## introduction
 * repository
@@ -128,132 +129,62 @@
         * all the changes that were committed on one branch and replay them on a different branch
         * after rebasing you can fast-forward master branch
     * git stash
+        * you may find yourself working on a new commit and want to temporarily undo your current changes but
+        redo them at a later point
+        * live in their own namespace refs/stash
+        * stashes are stored on a stack structure
+            * when running git stash pop, the top stash on the stack ( stash@{0} ) is applied to the working
+            directory and removed from the stack
+    * git tag
+        * usually used to mark release points (v1.0, v2.0 and so on)
+        * two types
+            * lightweight
+                * is like a branch that doesn’t change
+                * just a pointer to a specific commit
+            * annotated
+                * are stored as full objects in the Git database
+                * are checksummed
+                    * contain the tagger name, email, date, and a tagging message
+        * by default, the git push command doesn’t transfer tags to remote servers
+            * use `git push origin --tags`
+        * `git checkout <tagname>`
+        * `git describe --tags` - list all tags
+    * git cherry-pick
+        * used to include only a single commit from a branch onto the current branch rather than merging
+        * remark: sha-1 change on a cherry-pick
+    * git diff
+    * git revert
+    * git config
 * tracking branch
+* ref
+    * are the possible ways of addressing individual commits
+        * branch
+            * are pointers to specific commits
+            * referencing the branch master is the same as referencing the SHA-1 of the commit at the top of the master branch
+            * quicker and easier to remember for referencing commits than SHA-1
+        * HEAD
+            * is you - points to whatever you checked out, wherever you are
+                * if you make a commit, HEAD will move, if you checkout something, HEAD will move
+            * example: if you checkout master, then master and HEAD are equivalent
+            * vs branch
+                * typically HEAD does not point to a commit - it points to a branch reference
+                * it is attached to that branch, and when you do certain things (e.g., commit or reset), the
+                attached branch will move along with HEAD
+            * detached HEAD state
+                * it means that HEAD points directly to a commit
+                * it is called a detached HEAD, because HEAD is pointing to something other than a branch reference
+                * you could be on the same commit as your master branch, but if HEAD is pointing to the commit
+                rather than the branch, it is detached and a new commit will not be associated with a branch reference
+                * representation of (HEAD -> branch) vs. (HEAD, branch) with git log -1
+    * `ref~1` or `ref^^` = one commit before that ref
+    * git rev-parse
+        * see what SHA-1 a given ref expands to
 ## basics
 * three main states that your files can reside in
     * modified
     * staged (index)
     * committed
-* stash
-    * There are times when you may find yourself working on a new commit and want to
-      temporarily undo your current changes but redo them at a later point.
-      * Instead you can stash your
-        uncommitted changes to store them temporarily and then be able to change
-        branches, pull changes, and so on without needing to worry about these changes get-
-        ting in the way.
-      * git stash save creates a temporary commit with a prepopulated commit message and
-        then returns your current branch to the state before the temporary commit was made.
-      * It’s possible to access this commit directly, but you should only do so through git
-        stash to avoid confusion.
-      * You can see all the stashes that have been made by running git stash list . The
-        output will resemble the following.
-      * This is because the stashes are stored on a stack structure.
-      * live in their own namespace refs/stash
-      * When running git stash pop , the top stash on the stack ( stash@{0} ) is applied to the
-        working directory and removed from the stack
-      * If you wish to apply an item from the stack multiple times (perhaps on multiple
-        branches), you can instead use git stash apply .
-      * git stash clear
-* git tag
-    * Git has the ability to tag specific points in a repository’s history as being important.
-      * people use this functionality to mark release points (v1.0, v2.0 and so on)
-      * Git supports two types of tags: lightweight and annotated.
-        * A lightweight tag is very much like a branch that doesn’t change — it’s just a pointer to a specific
-          commit.
-        * Annotated tags, however, are stored as full objects in the Git database.
-          * They’re checksummed;
-            contain the tagger name, email, and date; have a tagging message; and can be signed and verified
-            with GNU Privacy Guard (GPG)
-          * It’s generally recommended that you create annotated tags so you
-            can have all this information; but if you want a temporary tag or for some reason don’t want to
-            keep the other information, lightweight tags are available too.
-      * By default, the git push command doesn’t transfer tags to remote servers.
-        * You will have to explicitly
-          push tags to a shared server after you have created them.
-        * git push origin <tagname>
-        * If you have a lot of tags that you want to push up at once, you can also use the --tags option
-      * If you want to view the versions of files a tag is pointing to, you can do a git checkout of that tag
-        * git checkout v2.0.0
-    * A tag is another ref (or pointer) for a single commit.
-      * Tags differ from branches in that they’re (usually) permanent
-      * Rather than pointing
-        to the work in progress on a feature, they’re generally used to describe a version of a
-        software project.
-      * For example, if you were releasing version 1.3 of your software project, you’d tag
-        the commit that you release to customers as v1.3 to store that version for later use.
-      * After you’ve tagged a version and verified that it’s point-
-        ing to the correct commit and has the correct name, you can push it using git push-tags
-      * This pushes all the tags you’ve created in the local repository to the remote
-        repository.
-    * git describe --tags
-      * output: v0.1-1-g0a5e328
-         v0.1 is the most recent tag on the current branch.
-         1 indicates that one commit has been made since the most recent tag ( v0.1 ) on
-        the current branch.
-         g0a5e328 is the current commit SHA-1 prepended with a g (which stands for
-        git ).
-* git cherry-pick
-    * Sometimes you may wish to include only a single commit from a branch onto the cur-
-      rent branch rather than merging the entire branch.
-      * git cherry-pick
-      * WHY DOES THE SHA-1 CHANGE ON A CHERRY-PICK? Recall that the SHA-1 of a
-        commit is based on its tree and metadata (which includes the parent commit
-        SHA-1 ). Because the resulting master branch cherry-picked commit has a dif-
-        ferent parent than the commit that was cherry-picked from the v0.1-release
-        branch, the commit SHA-1 differs also.
-* git diff
-          * when you run
-            git diff , you’re comparing the copy of the file in the working directory with the copy
-            of the file in the staging area
-* git revert
-* git config
 * ref
-    * In Git, refs are the possible ways of addressing individual commits. They’re an easier
-      way to refer to a specific commit or branch when specifying an argument to a Git
-      command.
-      * The first ref you’ve already seen is a branch (which is master by default if you
-        haven’t created any other branches)
-      * Branches are pointers to specific commits.
-        * Ref-
-          erencing the branch name master is the same as referencing the SHA-1 of the commit
-          at the top of the master branch, such as the short SHA-1 6b437c7 in the last example.
-        * Using branch names is quicker and easier to remember for referencing
-          commits than always using SHA-1 s.
-      * Refs can also have modifiers appended. Suffixing a ref with ~1 is the same as saying
-        “one commit before that ref.”
-        * For example, master~1 is the penultimate commit on the
-          master branch
-        * Another equivalent syntax
-          is master^ , which is the same as master~1 (and master^^ is equivalent to master~2 )
-      * The second ref is the string HEAD
-        * HEAD always points to the top of whatever you cur-
-           rently have checked out, so it’s almost always the top commit of the current branch
-           you’re on
-        * If you have the master branch checked out, then master and HEAD (and
-          6b437c7 in the last example) are equivalent
-        * The HEAD pointer points to the current branch.
-        * The branch pointer points
-          to a particular commit.
-      * git rev-parse if you want to see what SHA-1 a given ref
-        expands to
-        * # git rev-parse master: 6b437c7739d24e29c8ded318e683eca8f03a5260
-* HEAD
-    * The last piece that you need for time travel is the device that does the travel. It
-      turns out that Git supplies this device by default: it’s your HEAD
-      * At its simplest, the HEAD is the current branch
-      * This HEAD is analogous to the laser in
-        a CD/DVD player, the needle of a record player, the tape player head in a cassette
-        player, or that marker on a progress bar that you can move with your finger to any part
-        of a song on your music-playing device
-      * HEAD is also your actual head
-        * What is your
-          head (you) looking at right now? At the moment, you’re looking at the present, but in
-          just a few paragraphs, you’ll move your head to another point in the timeline.
-   * git rev-parse HEAD
-     git rev-parse master
-* revert
-    * Reverting a previous commit: git revert
-
 
 ## recovery and history
 * Remember, anything that is committed in Git can almost always be recovered. Even commits that
