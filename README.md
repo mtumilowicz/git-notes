@@ -1,71 +1,53 @@
 # git-notes
 
+* references
+    * https://www.manning.com/books/git-in-practice
+    * https://www.manning.com/books/learn-git-in-a-month-of-lunches
+    * https://git-scm.com/book/en/v2
+
 ## introduction
-* version control concepts
-* gits key features
-    * It stores all the history, branches, and commits
-      locally. This means adding new versions or querying history doesn’t require a network
-      connection.
-    * A Git repository is the local collection of all the files related to a particular Git version
-      control system and contains a .git subdirectory in its root. Git keeps track of the state
-      of the files in the repository’s directory on disk.
-    * Git repositories store all their data on your local machine. Making commits, view-
-      ing history, and requesting differences between commits are all local operations that
-      don’t require a network connection.
-    * in .git directory
-          /.git/config // contains the configuration of the local repository
-          /.git/description // is a file that describes the repository
-          /.git/HEAD // HEAD pointer, respectively, that point to commits
-          /.git/hooks/applypatch-msg.sample // Event hooks
-          /.git/info/exclude //  contains files that should be excluded from the repository
-          /.git/objects/info // Object information, used for object storage
-          /.git/objects/pack // Pack files, used for reference
-          /.git/refs/heads // Branch pointers, respectively, that point to commits
-          /.git/refs/tags // Tag pointers, respectively, that point to commits
-          /.git/index // Git’s index is a staging area used to build up new commits.
+* repository
+    * is the local collection of all the files related to a particular Git version
+            control system and contains a .git subdirectory in its root
+    * Git keeps track of the state of the files in the repository’s directory on disk
+* `.git` directory
+    /.git/config // contains the configuration of the local repository
+    /.git/description // is a file that describes the repository
+    /.git/HEAD // HEAD pointer, respectively, that point to commits
+    /.git/hooks/applypatch-msg.sample // Event hooks
+    /.git/info/exclude //  contains files that should be excluded from the repository
+    /.git/objects/info // Object information, used for object storage
+    /.git/objects/pack // Pack files, used for reference
+    /.git/refs/heads // Branch pointers, respectively, that point to commits
+    /.git/refs/tags // Tag pointers, respectively, that point to commits
+    /.git/index // Git’s index is a staging area used to build up new commits.
+* commit
+    * contains
+        * message entered by the author
+        * details of the commit author
+        * unique commit reference
+            * SHA-1 hashes such as `86bb0d659a39c98808439fadb8dbd594bec0004d`
+            * everything in Git is checksummed before it is stored and is then referred to by that checksum
+            * it’s impossible to change the contents of any file or directory without Git knowing about it
+            * Git stores everything in its database not by file name but by the hash value of its contents
+        * pointer to the preceding commit (parent commit)
+        * date the commit was created
+        * a pointer to the contents of files when the commit was made (object store context)
+* object store
+    * git stores all the history, branches, and commits locally
+        * example: querying history doesn’t require a network connection
+    * Git creates and stores a collection of objects when you commit
+    * object store is stored inside the Git repository
+    * the main Git objects: commits, blobs, tags, and trees
+    * commit object contains a reference to the root tree object for this version
+    * tree object contains:
+        * references to blob objects for each file in the directory for this version
+        * references to tree objects for each subdirectory of the directory for this version
+    * blob object contains: contents of the file for this version
+* index
     * Git doesn’t add anything to the index without your instruction
-      * As a result, the first
-        thing you have to do with a file you want to include in a Git repository is request that
-        Git add it to the index.
-    * Each commit contains a
-      message entered by the author, details of the commit author, a unique commit refer-
-      ence (in Git, SHA-1 hashes such as 86bb0d659a39c98808439fadb8dbd594bec0004d ) a
-      pointer to the preceding commit (known as the parent commit), the date the commit
-      was created, and a pointer to the contents of files when the commit was made
-      * A unique SHA-1 hash of this
-        commit and all the metadata
-      * git commit can be called with a path (like git add ) to do the equivalent of an add
-        followed immediately by a commit.
-      * It can also take the --all (or -a ) flag to add all
-        changes to files tracked in the repository into a new commit
-    * Git is a version control system built on top of an object store
-      * Git creates and stores a col-
-         lection of objects when you commit
-      * The object store is stored inside the Git repository.
-      * the main Git objects we’re concerned with: commits, blobs,
-         and trees
-        * There’s also a tag object, but don’t worry about tags until they’re introduced
-      * Commit object contains:
-        - commit metadata for this version
-        - a reference to the root tree object
-          for this version
-          * Tree object contains:
-            - references to blob objects for each file in the
-              directory for this version
-              - Blob object contains: contents of the file for this version
-            - references to tree objects for each subdirectory
-              of the directory for this version
-    * Nearly Every Operation Is Local
-      * For example, to browse the history of the project, Git doesn’t need to go out to the server to get the
-        history and display it for you — it simply reads it directly from your local database.
-    * Everything in Git is checksummed before it is stored and is then referred to by that checksum.
-      * This
-        means it’s impossible to change the contents of any file or directory without Git knowing about it.
-      * You can’t lose
-        information in transit or get file corruption without Git being able to detect it.
-      * The mechanism that Git uses for this checksumming is called a SHA-1 hash.
-      * In fact, Git
-        stores everything in its database not by file name but by the hash value of its contents.
+    * the first thing you have to do with a file you want to include in a Git repository
+    is request that Git add it to the index
 ## basics
 * Git has three main states that your files can reside in: modified,
   staged, and committed
