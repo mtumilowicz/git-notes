@@ -31,6 +31,7 @@
             * it’s impossible to change the contents of any file or directory without Git knowing about it
             * Git stores everything in its database not by file name but by the hash value of its contents
         * pointer to the preceding commit (parent commit)
+            * except for the first commit
         * date the commit was created
         * a pointer to the contents of files when the commit was made (object store context)
 * object store
@@ -48,70 +49,35 @@
     * Git doesn’t add anything to the index without your instruction
     * the first thing you have to do with a file you want to include in a Git repository
     is request that Git add it to the index
-## basics
-* Git has three main states that your files can reside in: modified,
-  staged, and committed
-  * The staging area is a file, generally contained in your Git directory, that stores information about
-    what will go into your next commit.
-    * Its technical name in Git parlance is the “index”, but the phrase
-       “staging area” works just as well.
-* commit
-    * The first thing to point out about the git log output is that each commit has an ID
-      * This ID is unique to this commit even if you share your repository with a different
-        server
-   * Each commit contains, at a minimum, the committer’s name and the date and time at
-     which the user made the commit.
-   * One thing that’s not so obvious in the git log output is that every commit has a
-     parent, except for the first commit.
-     * The parent commit can be revealed by using the
-       git log --parents switch.
-* git status
-  * command will tell you the state of your working directory
-* history
-    * The history in Git is the complete list of all commits made since the repository was cre-
-      ated. The history also contains references to any branches, merges, and tags made within
-      the repository.
-    * The git log output lists all the commits that have been made on the current branch
-      in reverse chronological order
-    * Adding the -a option to the git commit command makes
-      Git automatically stage every file that is already tracked before doing the commit
-* git amend
-    * It’s important to understand that when you’re amending your last commit, you’re
-      not so much fixing it as replacing it entirely with a new, improved commit that
-      pushes the old commit out of the way and puts the new commit in its place.
-* git add, git commit
-    * It
-      turns out that Git stages a file exactly as it is when you run the git add command. If you commit
-      now, the version of CONTRIBUTING.md as it was when you last ran the git add command is how it will
-      go into the commit, not the version of the file as it looks in your working directory when you run
-      git commit. If you modify a file after you run git add, you have to run git add again to stage the
-      latest version of the file
-    * Whenever you want to introduce a new file to a Git repository, you must use git add
-      on that file first
-      * Git can only keep track of files that it has been told about
-      * To create a timeline event, you have to commit the file to the repository, using git
-        commit
-      * It also reports the mode for the
-        newly created file in your repository ( 100644 ). The mode is a number representing a
-        file’s permission. For the purposes of this book, don’t worry about a file’s permissions,
-        but do note that Git tracks this.
-    * git commit -a -m "This is the second commit."
-      * By using the -a and -m switches together, you've avoided the git add step and
-        entered a message at the same time.
-      * Performing the git add at the same time as git commit is a common shortcut.
-      * You do
-        have to add the file first (with an initial git add ) before this shortcut can work.
-    * One thing that might begin to bother you about Git is that you have to use git add at
-      least once for every file that you want to commit into the repository. Then, after every
-      change you make to that file, you still have to use git add on the changed file before
-      you can commit the file to the repository.
-      * After the first git add , doing it again for every change seems
-        redundant.
-  * The Git staging area contains the version of the Git working directory that you want to
-    commit
-    * Git acknowledges with the shortcut git commit -a that most of us will typi-
-      cally put the changes in our working directory into the repository.
+    * stores information about what will go into your next commit
+* commands
+    * git status
+        * tell you the state of your working directory
+    * git history
+        * complete list of all commits made since the repository was created
+        * contains references to any branches, merges, and tags made within the repository
+    * git add
+        * Git stages a file exactly as it is when you run the git add command
+        * if you `git commit`, the last `git add` version of the file will go into the commit
+            * not the version from your working directory
+            * if you modify a file after you run git add, you have to run git add again to
+            stage the latest version of the file
+        * Git can only keep track of files that it has been told about
+            * to introduce a new file you must use `git add` on that file first
+    * git commit
+        * option: `-a`
+            * automatically stage every file that is already tracked before doing the commit
+            * performing the git add at the same time as git commit is a common shortcut
+            * you have to add the file first (with an initial `git add` ) before this shortcut can work
+    * git amend
+        * when you’re amending your last commit, you’re replacing it with a new commit
+
 * tracking branch
+## basics
+* three main states that your files can reside in
+    * modified
+    * staged (index)
+    * committed
 * pull
     * git pull downloads the new commits from another repository and merges the
       remote branch into the current branch
