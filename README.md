@@ -4,6 +4,7 @@
     * https://www.manning.com/books/git-in-practice
     * https://www.manning.com/books/learn-git-in-a-month-of-lunches
     * https://git-scm.com/book/en/v2
+    * https://www.biteinteractive.com/understanding-git-merge/
 
 ## introduction
 * repository
@@ -71,133 +72,68 @@
             * you have to add the file first (with an initial `git add` ) before this shortcut can work
     * git amend
         * when you’re amending your last commit, you’re replacing it with a new commit
-
+    * git fetch
+        * fetches all the changes on the server that you don’t have
+        * not modify your working directory
+    * git pull
+        * two phases
+            1. fetching the changes from a remote repository
+            1. merging them into the current branch
+        * option: `rebase`
+    * git push
+    * git merge
+        * result: a commit that has two (or even more) parent commits
+            * the latest commit from the master branch and the latest commit from the feature branch
+        * example
+            ```
+                              otherbranch
+                                  |
+                        X <- Y <- Z
+                       /
+            A <- B <- C <- D <- E <- F <- G
+                                          |
+                                        master
+                                          |
+                                        HEAD
+            ```
+            * you are on `master` and you said `git merge otherbranch`
+                1. Git first figures out that the merge base is commit C
+                1. Git then calculates the diff from C to G (because G is master)
+                1. and the diff from C to Z (because Z is otherbranch)
+                1. Git then applies both of those diffs to C simultaneously — and commits the result on master
+                    * That is the merge commit
+            ```
+                              otherbranch
+                                  |
+                        X <- Y <- Z <--------\
+                       /                      \
+            A <- B <- C <- D <- E <- F <- G <- M
+                                               |
+                                             master
+                                               |
+                                             HEAD
+            ```
+        * conflicts
+            * one of the two diffs from the merge base shows that a certain line or clump of lines
+            was edited one way, and the other diff shows that the same clump of lines was edited a different way
+        * merge strategy
+            * is an algorithm that Git uses to decide how to perform a merge
+            * `--strategy=recursive`
+        * special case: fast-forward merge
+            * if incoming branch has the current branch as an ancestor, Git simplifies things
+            by moving the pointer forward
+                * there is no divergent work to merge
+    * git rebase
+        * creates new, reparented commits on top of the existing commits
+        * all the changes that were committed on one branch and replay them on a different branch
+        * after rebasing you can fast-forward master branch
+    * git stash
 * tracking branch
 ## basics
 * three main states that your files can reside in
     * modified
     * staged (index)
     * committed
-* pull
-    * git pull downloads the new commits from another repository and merges the
-      remote branch into the current branch
-    * Remember that git pull performs two actions: fetching the changes from a remote
-      repository and merging them into the current branch.
-      * Sometimes you may wish to
-        download the new commits from the remote repository without merging them into
-        your current branch (or without merging them yet)
-      * git fetch performs the fetching action of downloading the new
-        commits but skips the merge step (which you can manually perform later)
-    * git pull is a two-part operation. In the first part, your local repository retrieves
-      (fetches) the contents of the remote repository. In the second part, git pull attempts
-      to make your repository look like the remote repository (which is now on your local
-      machine) by performing a merge of the local branch and the remote-tracking branch.
-    * The second step of git pull is to run git merge FETCH_HEAD
-      * What is
-        FETCH_HEAD ? It’s a reference to the
-        remote branch that you just fetched
-        in the previous section.
-      * git rev-parse origin/master
-        This last command should give you the same SHA1 ID as FETCH_HEAD
-      * because you have two commit ID s, you can ask Git to indicate what is
-         different between these two branches
-        * git diff HEAD..FETCH_HEAD
-      * If
-        two branches have modified the same file in the same place but in different ways, Git
-        has to ask how to resolve the conflict
-* push
-    * git push sends your new commits to it,
-      and git fetch retrieves from it any new commits made by others
-* fetch
-    * While the git fetch command will fetch all the changes on the server that you don’t have yet, it will
-      not modify your working directory at all.
-      * retrieves files from one repository and incorporates those files into your
-        repository. Specifically, git fetch retrieves references, which for you means branches
-        or tags
-      * When they arrive at your local repository, they are laid down on top of your
-        repository, along with any files that they point to
-      * you can see that your current HEAD (master) is still at 195f2a1 on
-        the second line, but the remote-tracking branch for master (origin/master) is
-        7746e35 on the first line
-        * Hopefully it’s clear by now that
-          git fetch has brought in a new
-          object (a new commit to master)
-          and laid it right on top of your
-          local repository.
-      * It’s important to note that the git fetch command only downloads
-        the data to your local repository - it doesn’t automatically merge it with any of your work or
-        modify what you’re currently working on
-* merge
-    * A merge results in a commit that has two (or even more) parent
-      commits.
-    * merge commit has two parents: the latest commit from the
-      master branch and the latest commit from the bugfix branch
-    * One special case of merging in Git is the fast-forward merge. This special case takes
-      effect when the target branch is a descendant of the branch that it will merge with.
-    * fast-forward
-        * Because the commit C4 pointed to by the
-          branch hotfix you merged in was directly ahead of the commit C2 you’re on, Git simply moves the
-          pointer forward.
-          * To phrase that another way, when you try to merge one commit with a commit
-            that can be reached by following the first commit’s history, Git simplifies things by moving the
-            pointer forward because there is no divergent work to merge together — this is called a “fast-
-            forward.”
-    * Let’s start by setting up how to perform a merge that could be made without creating
-      a merge commit: a fast-forward merge.
-      * Recall that a fast-forward merge means the
-        incoming branch has the current branch as an ancestor
-      * A merge commit has two parents: the previous commit on the current branch ( master
-        in this case) and the previous commit on the incoming branch ( chapter-spacing in
-        this case)
-      * https://www.biteinteractive.com/understanding-git-merge/
-        * Git first figures out that the merge base is commit C. (Do you see why?)
-
-      Git then calculates the diff from C to G (because G is master) and the diff from C to Z (because Z is otherbranch).
-
-      Git then applies both of those diffs to C simultaneously — and commits the result on master. That is the merge commit. (And, as I’ve already said, master now points to the merge commit, which has two parents, G and Z).
-    * A merge strategy is an algorithm that Git uses to decide how to perform a merge.
-      * git merge --strategy=recursive
-      * Git has a command named git rerere (which stands for “Reuse Recorded Resolu-
-        tion”) that integrates with the normal git merge workflow to record the resolution of
-        merge conflicts for later replay
-    * git pull --rebase
-    * Merging joins the history of two branches together with a merge commit (a commit
-      with two parent commits);
-    * and rebasing creates new, reparented commits on top of
-      the existing commits.
-    * Because the commit on the branch you’re on isn’t a
-      direct ancestor of the branch you’re merging in, Git has to do some work.
-      * In this case, Git does a
-        simple three-way merge, using the two snapshots pointed to by the branch tips and the common
-        ancestor of the two.
-      * Instead of just moving the branch pointer forward, Git creates a new snapshot that results from this
-        three-way merge and automatically creates a new commit that points to it.
-        * This is referred to as a
-          merge commit, and is special in that it has more than one parent.
-* rebase
-    * With the rebase command, you can take all the
-      changes that were committed on one branch and replay them on a different branch.
-      * git rebase --onto master client // applies commits from client to the master since diverged
-      * Now you can fast-forward your master branch
-        * git checkout master
-        * git merge client
-      * git rebase master server
-        * This replays your server work on top of your master work
-        * Then, you can fast-forward the base branch
-          $ git checkout master
-          $ git merge server
-    * A rebase is a method of rewriting history in Git that is similar to a merge. A rebase
-      involves changing the parent of a commit to point to another.
-      * The rebase operation has changed the parent of the first commit in the separate-
-        files branch to be the last commit in the master branch.
-    * https://stackoverflow.com/questions/51608851/rebase-feature-branch-but-commit-ids-had-changed
-    * https://www.algolia.com/developers-tech-blog/code-and-deep-dives/master-the-rebase-and-the-other-way-around
-      * This is due to the way Git generates those commit hashes, which are not only based on the changes themselves, but also on the parent commit hash
-    * The word rebase means to give a new parent
-      to a branch.
-    * The most important
-      reason for using git rebase is to change
-      the starting point of your local branches.
 * stash
     * There are times when you may find yourself working on a new commit and want to
       temporarily undo your current changes but redo them at a later point.
