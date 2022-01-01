@@ -30,7 +30,7 @@
         * unique commit reference
             * SHA-1 hashes such as `86bb0d659a39c98808439fadb8dbd594bec0004d`
             * everything in Git is checksummed before it is stored and is then referred to by that checksum
-                *
+                * all commits effectively provide a checksum of the entire branch up until this point
             * it’s impossible to change the contents of any file or directory without Git knowing about it
             * Git stores everything in its database not by file name but by the hash value of its contents
         * pointer to the preceding commit (parent commit)
@@ -168,13 +168,31 @@
         * example
             * `git commit --amend` resets to the previous commit and then creates a new commit with the same commit
             message as the commit that was just reset
+    * git reflog
+        * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
+        * if everything is broken, you can use git reflog
+            * copy the hash of the event before your mistake, and then run
+        * is not shared with other repositories when you git push and aren’t fetched when you git fetch
+        * is an ordered list of the commits that HEAD has pointed to
+    * git checkout
+        * will move HEAD itself to point to another branch (or commit)
+        * new command to separate the use cases of git checkout (does too many things)
+            * git switch - used to switch branches
+            * git restore - restore files to the state they were on a specified commit
+    * git filter-branch
+        * rewriting the entire history of a branch
+        * iterates through the entire history of a branch and lets you rewrite every commit
+        * motivation: accidentally committed confidential files
 * tracking branch
+    * local branches that have a direct relationship to a remote branch
 * ref
     * are the possible ways of addressing individual commits
         * branch
             * are pointers to specific commits
             * referencing the branch master is the same as referencing the SHA-1 of the commit at the top of the master branch
             * quicker and easier to remember for referencing commits than SHA-1
+            * how does Git know what branch you’re currently on
+                * special pointer: HEAD
         * HEAD
             * is you - points to whatever you checked out, wherever you are
                 * if you make a commit, HEAD will move, if you checkout something, HEAD will move
@@ -200,73 +218,9 @@
     * modified
     * staged (index)
     * committed
-
-## recovery and history
 * anything that is committed in Git can almost always be recovered
     * even commits that were on branches that were deleted
     * or commits that were overwritten with an --amend commit
-* git reflog
-    * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
-    * if everything is broken, you can use git reflog
-        * copy the hash of the event before your mistake, and then run
-    * is not shared with other repositories when you git push and aren’t fetched when you git fetch
-    * is an ordered list of the commits that HEAD has pointed to
-* git checkout
-    * will move HEAD itself to point to another branch (or commit)
-    * new command to separate the use cases of git checkout (does too many things)
-        * git switch - used to switch branches
-        * git restore - restore files to the state they were on a specified commit
-
-* Recall from technique 3 that each commit points to the previous (parent) commit
-  and that this is repeated all the way to the branch’s initial commit.
-  * As a result, the
-    branch pointer can be used to reference not just the current commit it points to, but
-    also every previous commit.
-  * If a previous commit changes in any way, then its SHA-1
-    hash changes too.
-  * This in turn affects the SHA-1 of all its descendant commits.
-  * This
-    provides good protection in Git from accidentally rewriting history, because all com-
-    mits effectively provide a checksum of the entire branch up until this point.
-* Rewriting the entire history of a branch:
-  git filter-branch
-  * Perhaps you accidentally committed confidential files early
-    in the project that you want to remove, or you want to split a large repository into mul-
-    tiple smaller ones.
-  * Git provides a tool called git filter-branch for these cases. It iterates through
-    the entire history of a branch and lets you rewrite every commit as it does so.
-    * This can
-      be used to rewrite all the commits in an entire repository.
-
-## branching
-* Tracking branches are
-  local branches that have a direct relationship to a remote branch. If you’re on a tracking branch
-  and type git pull, Git automatically knows which server to fetch from and which branch to merge
-  in.
-* A branch in Git is simply a lightweight movable pointer to one of these commits
-  * How does Git know what branch you’re currently on? It keeps a special pointer called HEAD
-  * when you switch branches, Git resets your working directory to look like it did the last time you
-    committed on that branch
-* is shown because the --set-upstream option was passed to git push . By passing
-  this option, you tell Git that you want the local master branch you’ve just pushed to
-  track the origin remote’s branch master . The master branch on the origin
-  remote (which is often abbreviated origin/master ) is now known as the tracking
-  branch (or upstream) for your local master branch.
-* In Git, a branch is no more than a pointer to a particular
-  commit.
-* A tag is similar to a branch, but it points to a single commit and remains
-  pointing to the same commit even when new commits are made. Typically tags are
-  used for annotating commits; for example, when you release version 1.0 of your soft-
-  ware, you may tag the commit used to build the 1.0 release with a 1.0 tag
-  * This means
-    you can come back to it in the future, rebuild that release, or check how certain things
-    worked without fear that it will be somehow changed automatically.
-* Instead of saying that the branch master consists of a set of com-
-  mits, you can say that the branch master is the last commit.
-* The
-  last commit on a branch is called the tip of the branch, and it’s
-  always the most recent commit made to a branch.
-* This idea of pointing to a commit is known as a reference.
 
 ## submodules
 * It often happens that while working on one project, you need to use another project from within it.
