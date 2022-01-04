@@ -11,6 +11,8 @@
     * https://longair.net/blog/2010/06/02/git-submodules-explained/
     * https://www.vogella.com/tutorials/GitSubmodules/article.html
     * https://matthew-brett.github.io/curious-git/git_object_types.html
+    * https://stackoverflow.com/questions/61379397/how-is-git-using-git-objects-to-store-the-file-format
+    * [https://www.youtube.com/watch?v=P6jD966jzlk](Git Internals - How Git Works - Fear Not The SHA!)
 
 ## introduction
 * repository
@@ -75,6 +77,8 @@
     * the first thing you have to do with a file you want to include in a Git repository
     is request that Git add it to the index
     * stores information about what will go into your next commit
+    * workflow
+        ![alt text](img/workflow.png)
 * commands
     * git status
         * tell you the state of your working directory
@@ -319,14 +323,13 @@ repository in order to track the updates of the nested submodules
     * all the content is stored as tree and blob objects
         * trees ~ UNIX directory entries
         * blobs ~ inodes or file contents
+    * each commit hash points to the tree object which in turn points to hash of blobs(files) and other tree's(folders)
+* example
+    ![alt text](img/data_model.png)
+    ![alt text](img/data_model2.png)
 * commands
     * git cat-file -t <hash>
         * shows us the type of the object represented by a particular hash
     * git cat-file -p <hash>
         * shows the contents of the file associated with this hash
     * hash could be obtained from `git log`
-* Tree Objects
-    * contains one or more entries
-    * each entry is
-        * the SHA-1 hash of a blob
-        * subtree with its associated mode, type, and filename
