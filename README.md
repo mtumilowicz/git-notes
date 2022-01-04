@@ -267,8 +267,6 @@ repository in order to track the updates of the nested submodules
             git submodule update
             ```
 * commands
-    * git submodule add - add a new submodule to an existing repository
-        * example: git submodule add git@github.com:url_to/awesome_submodule.git path_to_awesome_submodule
     * git submodule update
         * moves into its subdirectory, run git fetch then git checkout the correct version
         * used after pulling a change in the parent repository that updates the revision checked out in the submodule
@@ -276,10 +274,6 @@ repository in order to track the updates of the nested submodules
         * if you freshly cloned the repo, you have to initiate submodules
         * pull all the code from the submodule and place it in the directory that it's configured to
     * git submodule status - show the current states of all submodules of a repository
-    * git submodule foreach <action>
-        * iterate through all the submodules in a repository (and their submodules) and run a Git
-        command to ensure that they have all checked out the master branch and have fetched the
-        latest remote repository commits
 
 ## internals
 * A remote repository is generally a bare repository — a Git repository that has no working directory.
