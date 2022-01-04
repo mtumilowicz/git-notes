@@ -6,6 +6,10 @@
     * https://git-scm.com/book/en/v2
     * https://www.biteinteractive.com/understanding-git-merge/
     * https://stackoverflow.com/questions/2304087/what-is-head-in-git
+    * https://www.atlassian.com/git/tutorials/git-submodule
+    * https://gist.github.com/gitaarik/8735255
+    * https://longair.net/blog/2010/06/02/git-submodules-explained/
+    * https://www.vogella.com/tutorials/GitSubmodules/article.html
 
 ## introduction
 * repository
@@ -43,11 +47,11 @@
     * Git creates and stores a collection of objects when you commit
     * object store is stored inside the Git repository
     * the main Git objects: commits, blobs, tags, and trees
-    * commit object contains a reference to the root tree object for this version
-    * tree object contains:
-        * references to blob objects for each file in the directory for this version
-        * references to tree objects for each subdirectory of the directory for this version
-    * blob object contains: contents of the file for this version
+        * each commit object points to a tree object which represents the state of your source code at that commit
+        * tree object contains:
+            * references to blob objects for each file in the directory for this version
+            * references to tree objects for each subdirectory of the directory for this version
+        * blob object contains: contents of the file for this version
 * index
     * Git doesn’t add anything to the index without your instruction
     * the first thing you have to do with a file you want to include in a Git repository
@@ -223,35 +227,59 @@
     * or commits that were overwritten with an --amend commit
 
 ## submodules
-* It often happens that while working on one project, you need to use another project from within it.
-* Submodules allow you to keep a Git repository as a
-  subdirectory of another Git repository.
-* git submodule update command to fetch changes from the submodule
-  repositories
-* git submodule update --remote will only update the branch registered in the .gitmodule, and by default, you will end up with a detached HEAD, unless --rebase or --merge is specified
-* git submodule foreach 'git stash'
-  * run some arbitrary command in each submodule
-* A Git repository can contain submodules. They allow you to reference other Git
-  repositories at specific revisions.
-* After this was done, it also created a .gitmodules file
-  in the root of the repository’s working directory.
-  C shows the file that contains the submodule metadata, such as the directory path
-  and the URL
-  * shows the new directory named submodule that was created to store the contents
-     of the new submodule repository.
-* Initializing all submodules can be done by running git submodule init , which
-  copies all the submodule names and URL s from the .gitmodules file to the local repos-
-  itory Git configuration file (in .git/config)
-* git submodule status command
-  * show the current states of all submodules of a repository
-* git submodule update --init
-  * For
-    example, you may want to iterate through all the submodules in a repository (and
-    their submodules) and run a Git command to ensure that they have all checked out
-    the master branch and have fetched the latest remote repository commits or print sta-
-    tus information.
-  * git submodule foreach
-  * git submodule foreach 'echo $name: $toplevel/$path [$sha1]'
+* motivation: while working on one project, you need to use another project from within it
+    * external code can be incorporated in a few different ways
+        1. external code can be directly copied and pasted into the main repository
+        1. incorporating external code is through the use of a language's package management system
+        1. git submodules
+* allow you to keep a Git repository as a subdirectory of another Git repository
+    * is a record that points to a specific commit in another external repository
+    * won't automatically be updated if the submodule's repository is updated
+    * they can be utilized exactly like stand-alone repositories
+* .gitmodules file
+    * contains meta data about the mapping between the submodule project's URL and local directory
+    * example
+        ```
+        [submodule "awesomelibrary"]
+         path = awesomelibrary
+         url = https://bitbucket.org/jaredw/awesomelibrary
+        ```
+* if you pull in new changes into the submodules, you need to create a new commit in your main
+repository in order to track the updates of the nested submodules
+    * example
+        * one developer updates submodule to the latest commit
+            ```
+            # have the master branch checked out
+            cd [submodule directory]
+            git checkout master
+            git pull
+
+            # to use the latest commit in master of the submodule
+            cd ..
+            git commit -m "move submodule to latest commit in master"
+
+            git push
+            ```
+        * another developer can get the update
+            ```
+            git pull
+
+            git submodule update
+            ```
+* commands
+    * git submodule add - add a new submodule to an existing repository
+        * example: git submodule add git@github.com:url_to/awesome_submodule.git path_to_awesome_submodule
+    * git submodule update
+        * moves into its subdirectory, run git fetch then git checkout the correct version
+        * used after pulling a change in the parent repository that updates the revision checked out in the submodule
+    * git submodule init
+        * if you freshly cloned the repo, you have to initiate submodules
+        * pull all the code from the submodule and place it in the directory that it's configured to
+    * git submodule status - show the current states of all submodules of a repository
+    * git submodule foreach <action>
+        * iterate through all the submodules in a repository (and their submodules) and run a Git
+        command to ensure that they have all checked out the master branch and have fetched the
+        latest remote repository commits
 
 ## internals
 * A remote repository is generally a bare repository — a Git repository that has no working directory.
