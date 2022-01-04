@@ -15,7 +15,7 @@
     * [https://www.youtube.com/watch?v=P6jD966jzlk](Git Internals - How Git Works - Fear Not The SHA!)
     * https://github.com/pluralsight/git-internals-pdf
 
-## introduction
+## basics
 * repository
     * is the local collection of the files and contains a `.git` subdirectory in its root
     * Git keeps track of the state of the files in the repository’s directory on disk
@@ -30,8 +30,8 @@
             * what happens when the fetch and push urls differ?
                 * same repository accessed via different transports, not two separate repositories
                     * example: ssh, https
-* git stores all the history, branches, and commits locally
-    * example: querying history doesn’t require a network connection
+    * git stores all the history, branches, and commits locally
+        * example: querying history doesn’t require a network connection
 * git objects
     * commits, blobs, tags, and trees
     * overview
@@ -50,12 +50,6 @@
             * except for the first commit
         * date the commit was created
         * each commit object points to a tree object which represents the state of your source code at that commit
-* tag
-    * contains a tagger, a date, a message, and a pointer
-    * points to a commit rather than a tree
-    * like a branch reference, but it never moves
-        * always points to the same commit but gives it a friendlier name
-    * doesn’t need to point to a commit; you can tag any Git object
 * index
     * Git doesn’t add anything to the index without your instruction
     * the first thing you have to do with a file you want to include in a Git repository
@@ -63,143 +57,6 @@
     * stores information about what will go into your next commit
     * workflow
         ![alt text](img/workflow.png)
-* commands
-    * git status
-        * tell you the state of your working directory
-    * git history
-        * complete list of all commits made since the repository was created
-        * contains references to any branches, merges, and tags made within the repository
-    * git add
-        * Git stages a file exactly as it is when you run the git add command
-        * if you `git commit`, the last `git add` version of the file will go into the commit
-            * not the version from your working directory
-            * if you modify a file after you run git add, you have to run git add again to
-            stage the latest version of the file
-        * Git can only keep track of files that it has been told about
-            * to introduce a new file you must use `git add` on that file first
-    * git commit
-        * option: `-a`
-            * automatically stage every file that is already tracked before doing the commit
-            * performing the git add at the same time as git commit is a common shortcut
-            * you have to add the file first (with an initial `git add` ) before this shortcut can work
-    * git amend
-        * when you’re amending your last commit, you’re replacing it with a new commit
-    * git fetch
-        * fetches all the changes on the server that you don’t have
-        * not modify your working directory
-    * git pull
-        * two phases
-            1. fetching the changes from a remote repository
-            1. merging them into the current branch
-        * option: `rebase`
-    * git push
-    * git merge
-        * result: a commit that has two (or even more) parent commits
-            * the latest commit from the master branch and the latest commit from the feature branch
-        * example
-            ```
-                              otherbranch
-                                  |
-                        X <- Y <- Z
-                       /
-            A <- B <- C <- D <- E <- F <- G
-                                          |
-                                        master
-                                          |
-                                        HEAD
-            ```
-            * you are on `master` and you said `git merge otherbranch`
-                1. Git first figures out that the merge base is commit C
-                1. Git then calculates the diff from C to G (because G is master)
-                1. and the diff from C to Z (because Z is otherbranch)
-                1. Git then applies both of those diffs to C simultaneously — and commits the result on master
-                    * That is the merge commit
-            ```
-                              otherbranch
-                                  |
-                        X <- Y <- Z <--------\
-                       /                      \
-            A <- B <- C <- D <- E <- F <- G <- M
-                                               |
-                                             master
-                                               |
-                                             HEAD
-            ```
-        * conflicts
-            * one of the two diffs from the merge base shows that a certain line or clump of lines
-            was edited one way, and the other diff shows that the same clump of lines was edited a different way
-        * merge strategy
-            * is an algorithm that Git uses to decide how to perform a merge
-            * `--strategy=recursive`
-        * special case: fast-forward merge
-            * if incoming branch has the current branch as an ancestor, Git simplifies things
-            by moving the pointer forward
-                * there is no divergent work to merge
-    * git rebase
-        * creates new, reparented commits on top of the existing commits
-        * all the changes that were committed on one branch and replay them on a different branch
-        * after rebasing you can fast-forward master branch
-    * git stash
-        * you may find yourself working on a new commit and want to temporarily undo your current changes but
-        redo them at a later point
-        * live in their own namespace refs/stash
-        * stashes are stored on a stack structure
-            * when running git stash pop, the top stash on the stack ( stash@{0} ) is applied to the working
-            directory and removed from the stack
-    * git tag
-        * usually used to mark release points (v1.0, v2.0 and so on)
-        * two types
-            * lightweight
-                * is like a branch that doesn’t change
-                * just a pointer to a specific commit
-            * annotated
-                * are stored as full objects in the Git database
-                * are checksummed
-                    * contain the tagger name, email, date, and a tagging message
-        * by default, the git push command doesn’t transfer tags to remote servers
-            * use `git push origin --tags`
-        * `git checkout <tagname>`
-        * `git describe --tags` - list all tags
-    * git cherry-pick
-        * used to include only a single commit from a branch onto the current branch rather than merging
-        * remark: sha-1 change on a cherry-pick
-    * git diff
-    * git revert
-    * git config
-    * git checkout
-    * git reset
-        * modifies the current branch pointer so it points to another commit
-        * phases
-            1. Move the branch HEAD points to (stop here if --soft)
-            2. Make the index look like HEAD (stop here unless --hard)
-            3. Make the working directory look like the index.
-        * vs checkout
-            * checkout modifies the HEAD pointer so it points to another branch (or, rarely, commit)
-        * example
-            * `git commit --amend` resets to the previous commit and then creates a new commit with the same commit
-            message as the commit that was just reset
-    * git reflog
-        * anything that is committed in Git can almost always be recovered
-            * even commits that were on branches that were deleted
-            * or commits that were overwritten with an --amend commit
-        * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
-        * if everything is broken, you can use git reflog
-            * copy the hash of the event before your mistake, and then run
-        * is not shared with other repositories when you git push and aren’t fetched when you git fetch
-        * is an ordered list of the commits that HEAD has pointed to
-    * git checkout
-        * will move HEAD itself to point to another branch (or commit)
-        * new command to separate the use cases of git checkout (does too many things)
-            * git switch - used to switch branches
-            * git restore - restore files to the state they were on a specified commit
-    * git filter-branch
-        * rewriting the entire history of a branch
-        * iterates through the entire history of a branch and lets you rewrite every commit
-        * motivation
-            * accidentally committed confidential files
-            * committed a single huge file, every clone for all time will be forced to download that
-            large file, even if it was removed from the project
-                * it’s reachable from the history, it will always be there
 * ref
     * are the possible ways of addressing individual commits
         * branch
@@ -232,9 +89,153 @@
                 If you run git checkout test
                 cat .git/HEAD // ref: refs/heads/test
                 ```
+        * tag
+            * contains a tagger, a date, a message, and a pointer
+            * points to a commit rather than a tree
+            * like a branch reference, but it never moves
+                * always points to the same commit but gives it a friendlier name
+            * doesn’t need to point to a commit; you can tag any Git object
     * `ref~1` or `ref^^` = one commit before that ref
     * git rev-parse
         * see what SHA-1 a given ref expands to
+
+## commands
+* git status
+    * tell you the state of your working directory
+* git history
+    * complete list of all commits made since the repository was created
+    * contains references to any branches, merges, and tags made within the repository
+* git add
+    * Git stages a file exactly as it is when you run the git add command
+    * if you `git commit`, the last `git add` version of the file will go into the commit
+        * not the version from your working directory
+        * if you modify a file after you run git add, you have to run git add again to
+        stage the latest version of the file
+    * Git can only keep track of files that it has been told about
+        * to introduce a new file you must use `git add` on that file first
+* git commit
+    * option: `-a`
+        * automatically stage every file that is already tracked before doing the commit
+        * performing the git add at the same time as git commit is a common shortcut
+        * you have to add the file first (with an initial `git add` ) before this shortcut can work
+* git amend
+    * when you’re amending your last commit, you’re replacing it with a new commit
+* git fetch
+    * fetches all the changes on the server that you don’t have
+    * not modify your working directory
+* git pull
+    * two phases
+        1. fetching the changes from a remote repository
+        1. merging them into the current branch
+    * option: `rebase`
+* git push
+* git merge
+    * result: a commit that has two (or even more) parent commits
+        * the latest commit from the master branch and the latest commit from the feature branch
+    * example
+        ```
+                          otherbranch
+                              |
+                    X <- Y <- Z
+                   /
+        A <- B <- C <- D <- E <- F <- G
+                                      |
+                                    master
+                                      |
+                                    HEAD
+        ```
+        * you are on `master` and you said `git merge otherbranch`
+            1. Git first figures out that the merge base is commit C
+            1. Git then calculates the diff from C to G (because G is master)
+            1. and the diff from C to Z (because Z is otherbranch)
+            1. Git then applies both of those diffs to C simultaneously — and commits the result on master
+                * That is the merge commit
+        ```
+                          otherbranch
+                              |
+                    X <- Y <- Z <--------\
+                   /                      \
+        A <- B <- C <- D <- E <- F <- G <- M
+                                           |
+                                         master
+                                           |
+                                         HEAD
+        ```
+    * conflicts
+        * one of the two diffs from the merge base shows that a certain line or clump of lines
+        was edited one way, and the other diff shows that the same clump of lines was edited a different way
+    * merge strategy
+        * is an algorithm that Git uses to decide how to perform a merge
+        * `--strategy=recursive`
+    * special case: fast-forward merge
+        * if incoming branch has the current branch as an ancestor, Git simplifies things
+        by moving the pointer forward
+            * there is no divergent work to merge
+* git rebase
+    * creates new, reparented commits on top of the existing commits
+    * all the changes that were committed on one branch and replay them on a different branch
+    * after rebasing you can fast-forward master branch
+* git stash
+    * you may find yourself working on a new commit and want to temporarily undo your current changes but
+    redo them at a later point
+    * live in their own namespace refs/stash
+    * stashes are stored on a stack structure
+        * when running git stash pop, the top stash on the stack ( stash@{0} ) is applied to the working
+        directory and removed from the stack
+* git tag
+    * usually used to mark release points (v1.0, v2.0 and so on)
+    * two types
+        * lightweight
+            * is like a branch that doesn’t change
+            * just a pointer to a specific commit
+        * annotated
+            * are stored as full objects in the Git database
+            * are checksummed
+                * contain the tagger name, email, date, and a tagging message
+    * by default, the git push command doesn’t transfer tags to remote servers
+        * use `git push origin --tags`
+    * `git checkout <tagname>`
+    * `git describe --tags` - list all tags
+* git cherry-pick
+    * used to include only a single commit from a branch onto the current branch rather than merging
+    * remark: sha-1 change on a cherry-pick
+* git diff
+* git revert
+* git config
+* git checkout
+* git reset
+    * modifies the current branch pointer so it points to another commit
+    * phases
+        1. Move the branch HEAD points to (stop here if --soft)
+        2. Make the index look like HEAD (stop here unless --hard)
+        3. Make the working directory look like the index.
+    * vs checkout
+        * checkout modifies the HEAD pointer so it points to another branch (or, rarely, commit)
+    * example
+        * `git commit --amend` resets to the previous commit and then creates a new commit with the same commit
+        message as the commit that was just reset
+* git reflog
+    * anything that is committed in Git can almost always be recovered
+        * even commits that were on branches that were deleted
+        * or commits that were overwritten with an --amend commit
+    * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
+    * if everything is broken, you can use git reflog
+        * copy the hash of the event before your mistake, and then run
+    * is not shared with other repositories when you git push and aren’t fetched when you git fetch
+    * is an ordered list of the commits that HEAD has pointed to
+* git checkout
+    * will move HEAD itself to point to another branch (or commit)
+    * new command to separate the use cases of git checkout (does too many things)
+        * git switch - used to switch branches
+        * git restore - restore files to the state they were on a specified commit
+* git filter-branch
+    * rewriting the entire history of a branch
+    * iterates through the entire history of a branch and lets you rewrite every commit
+    * motivation
+        * accidentally committed confidential files
+        * committed a single huge file, every clone for all time will be forced to download that
+        large file, even if it was removed from the project
+            * it’s reachable from the history, it will always be there
 
 ## submodules
 * motivation: while working on one project, you need to use another project from within it
