@@ -30,18 +30,12 @@
             * what happens when the fetch and push urls differ?
                 * same repository accessed via different transports, not two separate repositories
                     * example: ssh, https
-* `.git` directory
-    * /.git/config // contains the configuration of the local repository
-    * /.git/description // is a file that describes the repository
-    * /.git/HEAD // HEAD pointer, respectively, that point to commits
-    * /.git/hooks/applypatch-msg.sample // Event hooks: client- or server-side hook scripts
-    * /.git/info/exclude //  contains files that should be excluded from the repository
-    * /.git/objects/info // Object information, used for object storage
-    * /.git/objects/pack // Pack files, used for reference
-    * /.git/refs/heads // Branch pointers, respectively, that point to commits
-    * /.git/refs/tags // Tag pointers, respectively, that point to commits
-    * /.git/refs/remotes // Stores the value you last pushed to that remote for each branch
-    * /.git/index // Git’s index is a staging area used to build up new commits.
+* git stores all the history, branches, and commits locally
+    * example: querying history doesn’t require a network connection
+* git objects
+    * commits, blobs, tags, and trees
+    * overview
+    ![alt text](img/data_model2.png)
 * commit
     * contains
         * message entered by the author
@@ -55,24 +49,13 @@
         * pointer to the preceding commit (parent commit)
             * except for the first commit
         * date the commit was created
-        * a pointer to the contents of files when the commit was made (object store context)
-* object store
-    * git stores all the history, branches, and commits locally
-        * example: querying history doesn’t require a network connection
-    * Git creates and stores a collection of objects when you commit
-    * object store is stored inside the Git repository
-    * the main Git objects: commits, blobs, tags, and trees
         * each commit object points to a tree object which represents the state of your source code at that commit
-        * tree object contains:
-            * references to blob objects for each file in the directory for this version
-            * references to tree objects for each subdirectory of the directory for this version
-        * blob object contains: contents of the file for this version
-        * tag
-            * contains a tagger, a date, a message, and a pointer
-            * points to a commit rather than a tree
-            * like a branch reference, but it never moves
-                * always points to the same commit but gives it a friendlier name
-            * doesn’t need to point to a commit; you can tag any Git object
+* tag
+    * contains a tagger, a date, a message, and a pointer
+    * points to a commit rather than a tree
+    * like a branch reference, but it never moves
+        * always points to the same commit but gives it a friendlier name
+    * doesn’t need to point to a commit; you can tag any Git object
 * index
     * Git doesn’t add anything to the index without your instruction
     * the first thing you have to do with a file you want to include in a Git repository
@@ -196,6 +179,9 @@
             * `git commit --amend` resets to the previous commit and then creates a new commit with the same commit
             message as the commit that was just reset
     * git reflog
+        * anything that is committed in Git can almost always be recovered
+            * even commits that were on branches that were deleted
+            * or commits that were overwritten with an --amend commit
         * is updated whenever a commit pointer is updated (like a HEAD pointer or branch pointer)
         * if everything is broken, you can use git reflog
             * copy the hash of the event before your mistake, and then run
@@ -214,8 +200,6 @@
             * committed a single huge file, every clone for all time will be forced to download that
             large file, even if it was removed from the project
                 * it’s reachable from the history, it will always be there
-* tracking branch
-    * local branches that have a direct relationship to a remote branch
 * ref
     * are the possible ways of addressing individual commits
         * branch
@@ -224,6 +208,8 @@
             * quicker and easier to remember for referencing commits than SHA-1
             * how does Git know what branch you’re currently on
                 * special pointer: HEAD
+            * tracking branch
+                * local branches that have a direct relationship to a remote branch
         * HEAD
             * is you - points to whatever you checked out, wherever you are
                 * if you make a commit, HEAD will move, if you checkout something, HEAD will move
@@ -249,15 +235,6 @@
     * `ref~1` or `ref^^` = one commit before that ref
     * git rev-parse
         * see what SHA-1 a given ref expands to
-
-## basics
-* three main states that your files can reside in
-    * modified
-    * staged (index)
-    * committed
-* anything that is committed in Git can almost always be recovered
-    * even commits that were on branches that were deleted
-    * or commits that were overwritten with an --amend commit
 
 ## submodules
 * motivation: while working on one project, you need to use another project from within it
@@ -309,6 +286,18 @@ repository in order to track the updates of the nested submodules
     * git submodule status - show the current states of all submodules of a repository
 
 ## internals
+* `.git` directory
+    * /.git/config // contains the configuration of the local repository
+    * /.git/description // is a file that describes the repository
+    * /.git/HEAD // HEAD pointer, respectively, that point to commits
+    * /.git/hooks/applypatch-msg.sample // event hooks: client- or server-side hook scripts
+    * /.git/info/exclude //  contains files that should be excluded from the repository
+    * /.git/objects/info // object information, used for object storage
+    * /.git/objects/pack // pack files, used for reference
+    * /.git/refs/heads // branch pointers, respectively, that point to commits
+    * /.git/refs/tags // tag pointers, respectively, that point to commits
+    * /.git/refs/remotes // stores the value you last pushed to that remote for each branch
+    * /.git/index // git’s index is a staging area used to build up new commits
 * Git doesn’t store data as a series of changesets or differences but as a series of snapshots
 * at the core of Git is a simple key-value data store
     * you can insert any kind of content into a Git repository, for which Git will hand you
@@ -327,7 +316,6 @@ repository in order to track the updates of the nested submodules
     * each commit hash points to the tree object which in turn points to hash of blobs(files) and other tree's(folders)
 * example
     ![alt text](img/data_model.png)
-    ![alt text](img/data_model2.png)
 * commands
     * git cat-file -t <hash>
         * shows us the type of the object represented by a particular hash
