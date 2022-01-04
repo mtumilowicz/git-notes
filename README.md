@@ -13,6 +13,7 @@
     * https://matthew-brett.github.io/curious-git/git_object_types.html
     * https://stackoverflow.com/questions/61379397/how-is-git-using-git-objects-to-store-the-file-format
     * [https://www.youtube.com/watch?v=P6jD966jzlk](Git Internals - How Git Works - Fear Not The SHA!)
+    * https://github.com/pluralsight/git-internals-pdf
 
 ## introduction
 * repository
